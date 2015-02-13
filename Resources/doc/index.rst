@@ -97,3 +97,60 @@ Deleting cookie
 ~~~~~~~~~~~~~~~
 
 To remove a cookie from the client browser, use ``$cookie->setClear(true)``. All other model values will be ignored.
+
+How to perform A B testing
+~~~~~~~~~~~~~~~
+
+# Introduction
+
+A/B testing can be implemented using ongr-utils for modifying cookies from outside the ONGR system.
+
+# Configuration
+
+In order to display 2 variations for button color for site visitors, add new user setting and cookie to store that setting:
+
+```yaml
+parameters:
+    project.cookie.ab_button.name: project_ab_button_color
+
+services:
+    project.cookie.ab_button:
+        class: %ongr_cookie.cookie.json.class%
+        arguments: [ %project.cookie.ab_button.name% ]
+        tags:
+            - { name: ongr_cookie.cookie }
+
+    ongr_cookie.settings.settings:
+        # ...
+        ab_button_color:
+            name: "Button color"
+            category: ab
+            description: "Color class for button color"
+            cookie: project.cookie.ab_button
+            type: [choice, { choices: { red: Red, green: Green } }]
+        # ...
+
+    ongr_cookie.settings.categories:
+        # ...
+        ab:
+            name: "A/B Testing"
+        # ...
+```
+
+More information about cookies in [[How to work with cookies]] page.
+# External tools
+
+Use external tool (e.g. Google Analytics, Visual Optimizer, etc.) to set the cookie with name `project_ab_button_color` and value `{"ab_button_color": "red"}` or `"green"` for another visitor group.
+
+*Remember to URL encode the cookie value if needed*.
+
+# Rendering
+
+Use cookie value in TWIG:
+
+```twig
+{% set button_color_class = ongr_setting_enabled('foo_setting_2', false) %}
+{{ form_widget(form['button_foo'], { 'attr': {'class': button_color_class} }) }}
+```
+
+More information in [[Power User]] wiki page.
